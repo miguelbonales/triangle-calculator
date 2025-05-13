@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Triangle Calculator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+        }
+        .left-section {
+            width: 50%;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #fff;
+            border-right: 1px solid #ccc;
+        }
+        .right-section {
+            width: 50%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f0f0f0;
+        }
+        canvas {
+            border: 1px solid #ccc;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Left Section: Preview Window with Formulas Only -->
+        <div class="left-section">
+            <h2>Reference Formulas</h2>
+
+            <h3>Right Triangles</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Known</th>
+                        <th>Unknown</th>
+                        <th>Area</th>
+                        <th>Formulas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>a, b</td>
+                        <td>c, ∠A, ∠B</td>
+                        <td>(a × b) / 2</td>
+                        <td>c = √(a² + b²), ∠A = arcsin(a/c), ∠B = arcsin(b/c)</td>
+                    </tr>
+                    <tr>
+                        <td>a, c</td>
+                        <td>b, ∠A, ∠B</td>
+                        <td>-</td>
+                        <td>b = √(c² - a²), ∠A = arcsin(a/c), ∠B = arccos(a/c)</td>
+                    </tr>
+                    <tr>
+                        <td>b, c</td>
+                        <td>a, ∠A, ∠B</td>
+                        <td>-</td>
+                        <td>a = √(c² - b²), ∠A = arccos(b/c), ∠B = arcsin(b/c)</td>
+                    </tr>
+                    <tr>
+                        <td>a, ∠A</td>
+                        <td>b, c, ∠B</td>
+                        <td>-</td>
+                        <td>b = a / tan(∠A), c = a / sin(∠A), ∠B = 90° - ∠A</td>
+                    </tr>
+                    <tr>
+                        <td>a, ∠B</td>
+                        <td>b, c, ∠A</td>
+                        <td>-</td>
+                        <td>b = a × tan(∠B), c = a / cos(∠B), ∠A = 90° - ∠B</td>
+                    </tr>
+                    <tr>
+                        <td>b, ∠A</td>
+                        <td>a, c, ∠B</td>
+                        <td>-</td>
+                        <td>a = b × tan(∠A), c = b / cos(∠A), ∠B = 90° - ∠A</td>
+                    </tr>
+                    <tr>
+                        <td>b, ∠B</td>
+                        <td>a, c, ∠A</td>
+                        <td>-</td>
+                        <td>a = b / tan(∠B), c = b / sin(∠B), ∠A = 90° - ∠B</td>
+                    </tr>
+                    <tr>
+                        <td>c, ∠A</td>
+                        <td>a, b, ∠B</td>
+                        <td>-</td>
+                        <td>a = c × sin(∠A), b = c × cos(∠A), ∠B = 90° - ∠A</td>
+                    </tr>
+                    <tr>
+                        <td>c, ∠B</td>
+                        <td>a, b, ∠A</td>
+                        <td>-</td>
+                        <td>a = c × cos(∠B), b = c × sin(∠B), ∠A = 90° - ∠B</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Oblique Triangles</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Known</th>
+                        <th>Unknown</th>
+                        <th>Area</th>
+                        <th>Formulas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>a, b, c</td>
+                        <td>∠A, ∠B, ∠C</td>
+                        <td>(a × b × sin(∠C)) / 2</td>
+                        <td>∠A = arccos((b² + c² - a²)/(2bc)), ∠B = arcsin(b × sin(∠A)/a), ∠C = 180° - ∠A - ∠B</td>
+                    </tr>
+                    <tr>
+                        <td>a, b, ∠C</td>
+                        <td>∠A, ∠B, c</td>
+                        <td>(a × b × sin(∠C)) / 2</td>
+                        <td>c = √(a² + b² - 2ab × cos(∠C)), ∠A = arctan(a × sin(∠C)/(b + a × cos(∠C))), ∠B = 180° - ∠A - ∠C</td>
+                    </tr>
+                    <tr>
+                        <td>a, b, ∠A</td>
+                        <td>∠B, ∠C, c</td>
+                        <td>(a × b × sin(∠C)) / 2</td>
+                        <td>For ∠A < 90°: ∠B = arcsin(b × sin(∠A)/a), ∠C = 180° - ∠A - ∠B, c = a × sin(∠C)/sin(∠A)<br>For ∠A > 90°: ∠B = 180° - arcsin(b × sin(∠A)/a), ∠C = 180° - ∠A - ∠B, c = a × sin(∠C)/sin(∠A)</td>
+                    </tr>
+                    <tr>
+                        <td>a, ∠A, ∠B</td>
+                        <td>b, c, ∠C</td>
+                        <td>(a × b × sin(∠C)) / 2</td>
+                        <td>∠C = 180° - ∠A - ∠B, b = a × sin(∠B)/sin(∠A), c = a × sin(∠C)/sin(∠A)</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Right Section: Interactive Calculator with Canvas -->
+        <div class="right-section">
+            <h2>Triangle Calculator</h2>
+            <div class="mb-4">
+                <label for="triangleType" class="block text-sm font-medium text-gray-700">Triangle Type:</label>
+                <select id="triangleType" onchange="updateKnownValues()" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    <option value="right">Right Triangle</option>
+                    <option value="oblique">Oblique Triangle</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="knownValues" class="block text-sm font-medium text-gray-700">Known Values:</label>
+                <select id="knownValues" onchange="updateInputs()" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+                    <!-- Options will be populated dynamically -->
+                </select>
+            </div>
+
+            <div id="inputs" class="mb-4">
+                <!-- Inputs will be populated dynamically -->
+            </div>
+
+            <div id="results" class="mb-4">
+                <!-- Results will be displayed here -->
+            </div>
+
+            <canvas id="triangleCanvas" width="400" height="300"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const triangleTypeSelect = document.getElementById('triangleType');
+        const knownValuesSelect = document.getElementById('knownValues');
+        const inputsDiv = document.getElementById('inputs');
+        const resultsDiv = document.getElementById('results');
+        const canvas = document.getElementById('triangleCanvas');
+        const ctx = canvas.getContext('2d');
+
+        function updateKnownValues() {
+            const type = triangleTypeSelect.value;
+            knownValuesSelect.innerHTML = '';
+            if (type === 'right') {
+                const options = [
+                    'a and b', 'a and c', 'b and c',
+                    'a and ∠A', 'a and ∠B', 'b and ∠A',
+                    'b and ∠B', 'c and ∠A', 'c and ∠B'
+                ];
+                options.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.text = opt;
+                    knownValuesSelect.appendChild(option);
+                });
+            } else {
+                const options = ['a, b, c', 'a, b, ∠C', 'a, b, ∠A', 'a, ∠A, ∠B'];
+                options.forEach(opt => {
+                    const option = document.createElement('option');
+                    option.value = opt;
+                    option.text = opt;
+                    knownValuesSelect.appendChild(option);
+                });
+            }
+            updateInputs();
+        }
+
+        function updateInputs() {
+            const type = triangleTypeSelect.value;
+            const known = knownValuesSelect.value;
+            inputsDiv.innerHTML = '';
+
+            const createInput = (label, id) => {
+                const div = document.createElement('div');
+                div.className = 'mb-2';
+                div.innerHTML = `
+                    <label for="${id}" class="block text-sm font-medium text-gray-700">${label}:</label>
+                    <input type="number" id="${id}" step="any" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" oninput="calculateAndDraw()">
+                `;
+                inputsDiv.appendChild(div);
+            };
+
+            if (type === 'right') {
+                if (known === 'a and b') {
+                    createInput('a', 'a');
+                    createInput('b', 'b');
+                } else if (known === 'a and c') {
+                    createInput('a', 'a');
+                    createInput('c', 'c');
+                } else if (known === 'b and c') {
+                    createInput('b', 'b');
+                    createInput('c', 'c');
+                } else if (known === 'a and ∠A') {
+                    createInput('a', 'a');
+                    createInput('∠A (degrees)', 'angleA');
+                } else if (known === 'a and ∠B') {
+                    createInput('a', 'a');
+                    createInput('∠B (degrees)', 'angleB');
+                } else if (known === 'b and ∠A') {
+                    createInput('b', 'b');
+                    createInput('∠A (degrees)', 'angleA');
+                } else if (known === 'b and ∠B') {
+                    createInput('b', 'b');
+                    createInput('∠B (degrees)', 'angleB');
+                } else if (known === 'c and ∠A') {
+                    createInput('c', 'c');
+                    createInput('∠A (degrees)', 'angleA');
+                } else if (known === 'c and ∠B') {
+                    createInput('c', 'c');
+                    createInput('∠B (degrees)', 'angleB');
+                }
+            } else {
+                if (known === 'a, b, c') {
+                    createInput('a', 'a');
+                    createInput('b', 'b');
+                    createInput('c', 'c');
+                } else if (known === 'a, b, ∠C') {
+                    createInput('a', 'a');
+                    createInput('b', 'b');
+                    createInput('∠C (degrees)', 'angleC');
+                } else if (known === 'a, b, ∠A') {
+                    createInput('a', 'a');
+                    createInput('b', 'b');
+                    createInput('∠A (degrees)', 'angleA');
+                } else if (known === 'a, ∠A, ∠B') {
+                    createInput('a', 'a');
+                    createInput('∠A (degrees)', 'angleA');
+                    createInput('∠B (degrees)', 'angleB');
+                }
+            }
+            calculateAndDraw();
+        }
+
+        function calculateAndDraw() {
+            const type = triangleTypeSelect.value;
+            const known = knownValuesSelect.value;
+            const results = {};
+            let a, b, c, angleA, angleB, angleC;
+
+            try {
+                if (type === 'right') {
+                    if (known === 'a and b') {
+                        a = parseFloat(document.getElementById('a').value) || 0;
+                        b = parseFloat(document.getElementById('b').value) || 0;
+                        c = Math.sqrt(a * a + b * b);
+                        angleA = Math.asin(a / c) * (180 / Math.PI);
+                        angleB = Math.asin(b / c) * (180 / Math.PI);
+                        results.c = c.toFixed(2);
+                        results.angleA = angleA.toFixed(2);
+                        results.angleB = angleB.toFixed(2);
+                        results.area = ((a * b) / 2).toFixed(2);
+                    } else if (known === 'a and c') {
+                        a = parseFloat(document.getElementById('a').value) || 0;
+                        c = parseFloat(document.getElementById('c').value) || 0;
+                        b = Math.sqrt(c * c - a * a);
+                        angleA = Math.asin(a / c) * (180 / Math.PI);
+                        angleB = Math.acos(a / c) * (180 / Math.PI);
+                        results.b = b.toFixed(2);
+                        results.angleA = angleA.toFixed(2);
+                        results.angleB = angleB.toFixed(2);
+                    } else if (known === 'b and c') {
+                        b = parseFloat(document.getElementById('b').value) || 0;
+                        c = parseFloat(document.getElementById('c').value) || 0;
+                        a = Math.sqrt(c * c - b * b);
+                        angleA = Math.acos(b / c) * (180 / Math.PI);
+                        angleB = Math.asin(b / c) * (180 / Math.PI);
+                        results.a = a.toFixed(2);
+                        results.angleA = angleA.toFixed(2);
+                        results.angleB = angleB.toFixed(2);
+                    } else if (known === 'a and ∠A') {
+                        a = parseFloat(document.getElementById('a').value) || 0;
+                        angleA = parseFloat(document.getElementById('angleA').value) || 0;
+                        angleA = Math.min(90, Math.max(0, angleA));
+                        b = a / Math.tan(angleA * Math.PI / 180);
+                        c = a / Math.sin(angleA * Math.PI / 180);
+                        angleB = 90 - angleA;
+                        results.b = b.toFixed(2);
+                        results.c = c.toFixed(2);
+                        results.angleB = angleB.toFixed(2);
+                    } else if (known === 'a and ∠B') {
+                        a = parseFloat(document.getElementById('a').value) || 0;
+                        angleB = parseFloat(document.getElementById('angleB').value) || 0;
+                        angleB = Math.min(90, Math.max(0, angleB));
+                        b = a * Math.tan(angleB * Math.PI / 180);
+                        c = a / Math.cos(angleB * Math.PI / 180);
+                        angleA = 90 - angleB;
+                        results.b = b.toFixed(2);
+                        results.c = c.toFixed(2);
+                        results.angleA = angleA.toFixed(2);
+                    } else if (known === 'b and ∠A') {
+                        b = parseFloat(document.getElementById('b').value) || 0;
+                        angleA = parseFloat(document.getElementById('angleA').value) || 0;
+                        angleA = Math.min(90, Math.max(0, angleA));
+                        a = b * Math.tan(angleA * Math.PI / 180);
+                        c = b / Math.cos(angleA * Math.PI / 180);
+                        angleB = 90 - angleA;
+                        results.a = a.toFixed(2);
+                        results.c = c.toFixed(2);
+                        results.angleB = angleB.toFixed(2);
+                    } else if (known === 'b and ∠B') {
+                        b = parseFloat(document.getElementById('b').value) || 0;
+                        angleB = parseFloat(document.getElementById('angleB').value) || 0;
+                        angleB = Math.min(90, Math.max(0, angleB));
+                        a = b / Math.tan(angleB * Math.PI / 180);
+                        c = b / Math.sin(angleB * Math.PI / 180);
+                        angleA = 90 - angleB;
+                        results.a = a.toFixed(2);
+                        results.c = c.toFixed(2);
+                        results.angleA = angleA.toFixed(2);
+                    } else if (known === 'c and ∠A') {
+                        c = parseFloat(document.getElementById('c').value) || 0;
+                        angleA = parseFloat(document.getElementById('angleA').value) || 0;
+                        angleA = Math.min(90, Math.max(0, angleA));
+                        a = c * Math.sin(angleA * Math.PI / 180);
+                        b = c * Math.cos(angleA * Math.PI / 180);
+                        angleB = 90 - angleA;
+                        results.a = a.toFixed(2);
+                        results.b = b.toFixed(2);
+                        results.angleB = angleB.toFixed(2);
+                    } else if (known === 'c and ∠B') {
+                        c = parseFloat(document.getElementById('c').value) || 0;
+                        angleB = parseFloat(document.getElementById('angleB').value) || 0;
+                        angleB = Math.min(90, Math.max(0, angleB));
+                        a = c * Math.cos(angleB * Math.PI / 180);
+                        b = c * Math.sin(angleB * Math.PI / 180);
+                        angleA = 90 - angleB;
+                        results.a = a.toFixed(2);
+                        results.b = b.toFixed(2);
+                        results.angleA = angleA.toFixed(2);
+                    }
+                } else {
+                    if (known === 'a, b, c') {
+                        a = parseFloat(document.getElementById('a').value) || 0;
+                        b = parseFloat(document.getElementById('b').value) || 0;
+                        c = parseFloat(document.getElementById('c').value) || 0;
+                        angleA = Math.acos((b * b + c * c - a * a) / (2 * b * c)) * (180 / Math.PI);
+                        angleB = Math.asin(b * Math.sin(angleA * Math.PI / 180) / a) * (180 / Math.PI);
+                        angleC = 180 - angleA - angleB;
+                        results.angleA = angleA.toFixed(2);
+                        results.angleB = angleB.toFixed(2);
+                        results.angleC = angleC.toFixed(2);
+                        results.area = ((a * b * Math.sin(angleC * Math.PI / 180)) / 2).toFixed(2);
+                    } else if (known === 'a, b, ∠C') {
+                        a = parseFloat(document.getElementById('a').value) || 0;
+                        b = parseFloat(document.getElementById('b').value) || 0;
+                        angleC = parseFloat(document.getElementById('angleC').value) || 0;
+                        angleC = Math.min(180, Math.max(0, angleC));
+                        c = Math.sqrt(a * a + b * b - 2 * a * b * Math.cos(angleC * Math.PI / 180));
+                        angleA = Math.atan(a * Math.sin(angleC * Math.PI / 180) / (b + a * Math.cos(angleC * Math.PI / 180))) * (180 / Math.PI);
+                        angleB = 180 - angleA - angleC;
+                        results.c = c.toFixed(2);
+                        results.angleA = angleA.toFixed(2);
+                        results.angleB = angleB.toFixed(2);
+                        results.area = ((a * b * Math.sin(angleC * Math.PI / 180)) / 2).toFixed(2);
+                    } else if (known === 'a, b, ∠A') {
+                        a = parseFloat(document.getElementById('a').value) || 0;
+                        b = parseFloat(document.getElementById('b').value) || 0;
+                        angleA = parseFloat(document.getElementById('angleA').value) || 0;
+                        angleA = Math.min(180, Math.max(0, angleA));
+                        let sinB = b * Math.sin(angleA * Math.PI / 180) / a;
+                        if (sinB > 1 || sinB < -1) throw new Error("Invalid triangle dimensions");
+                        angleB = Math.asin(sinB) * (180 / Math.PI);
+                        if (angleA + angleB > 180) angleB = 180 - angleA - (angleB - 90); // Handle > 90° case
+                        angleC = 180 - angleA - angleB;
+                        c = a * Math.sin(angleC * Math.PI / 180) / Math.sin(angleA * Math.PI / 180);
+                        results.c = c.toFixed(2);
+                        results.angleB = angleB.toFixed(2);
+                        results.angleC = angleC.toFixed(2);
+                        results.area = ((a * b * Math.sin(angleC * Math.PI / 180)) / 2).toFixed(2);
+                    } else if (known === 'a, ∠A, ∠B') {
+                        a = parseFloat(document.getElementById('a').value) || 0;
+                        angleA = parseFloat(document.getElementById('angleA').value) || 0;
+                        angleB = parseFloat(document.getElementById('angleB').value) || 0;
+                        angleA = Math.min(180, Math.max(0, angleA));
+                        angleB = Math.min(180, Math.max(0, angleB));
+                        angleC = 180 - angleA - angleB;
+                        b = a * Math.sin(angleB * Math.PI / 180) / Math.sin(angleA * Math.PI / 180);
+                        c = a * Math.sin(angleC * Math.PI / 180) / Math.sin(angleA * Math.PI / 180);
+                        results.b = b.toFixed(2);
+                        results.c = c.toFixed(2);
+                        results.angleC = angleC.toFixed(2);
+                        results.area = ((a * b * Math.sin(angleC * Math.PI / 180)) / 2).toFixed(2);
+                    }
+                }
+
+                // Display results
+                resultsDiv.innerHTML = '<h3>Results:</h3>';
+                for (let key in results) {
+                    resultsDiv.innerHTML += `<p>${key}: ${results[key]}</p>`;
+                }
+
+                // Draw triangle
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                if (type === 'right') {
+                    if (known.includes('a') && known.includes('b')) {
+                        drawRightTriangle(a, b, c, angleA, angleB, 0);
+                    } else if (known.includes('a') && known.includes('c')) {
+                        drawRightTriangle(a, b, c, angleA, angleB, 0);
+                    } else if (known.includes('b') && known.includes('c')) {
+                        drawRightTriangle(a, b, c, angleA, angleB, 0);
+                    } else if (known.includes('∠A')) {
+                        drawRightTriangle(a, b, c, angleA, angleB, 0);
+                    } else if (known.includes('∠B')) {
+                        drawRightTriangle(a, b, c, angleA, angleB, 0);
+                    }
+                } else {
+                    drawObliqueTriangle(a, b, c, angleA, angleB, angleC);
+                }
+            } catch (e) {
+                resultsDiv.innerHTML = `<p style="color: red;">Error: ${e.message}</p>`;
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        }
+
+        function drawRightTriangle(a, b, c, angleA, angleB, angleC) {
+            const maxSide = Math.max(a, b, c);
+            const scale = 200 / maxSide;
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            // Define vertices to match the desired orientation
+            const x1 = cx - (b * scale) / 2; // Vertex C (right angle, bottom-left)
+            const y1 = cy + (a * scale) / 2;
+            const x2 = cx + (b * scale) / 2; // Vertex B (bottom-right)
+            const y2 = cy + (a * scale) / 2;
+            const x3 = cx - (b * scale) / 2; // Vertex A (top)
+            const y3 = cy - (a * scale) / 2;
+
+            // Draw the triangle
+            ctx.beginPath();
+            ctx.moveTo(x1, y1); // C
+            ctx.lineTo(x2, y2); // B
+            ctx.lineTo(x3, y3); // A
+            ctx.closePath();
+            ctx.stroke();
+
+            // Place angles inside the triangle (slightly offset towards the center)
+            const offsetInside = 20;
+            ctx.fillText(`∠A=${angleA.toFixed(2)}°`, x3 + offsetInside, y3 + offsetInside);
+            ctx.fillText(`∠B=${angleB.toFixed(2)}°`, x2 - offsetInside * 2, y2 - offsetInside);
+            ctx.fillText(`∠C=90°`, x1 + offsetInside, y1 - offsetInside);
+
+            // Place sides outside the triangle
+            const offsetOutside = 15;
+            ctx.fillText(`a=${a.toFixed(2)}`, (x1 + x3) / 2 - offsetOutside, (y1 + y3) / 2);
+            ctx.fillText(`b=${b.toFixed(2)}`, (x1 + x2) / 2, (y1 + y2) / 2 + offsetOutside);
+            ctx.fillText(`c=${c.toFixed(2)}`, (x2 + x3) / 2 + offsetOutside, (y2 + y3) / 2);
+        }
+
+        function drawObliqueTriangle(a, b, c, angleA, angleB, angleC) {
+            const maxSide = Math.max(a, b, c);
+            const scale = 200 / maxSide;
+            const cx = canvas.width / 2;
+            const cy = canvas.height / 2;
+
+            // Define vertices to match typical oblique triangle orientation
+            const x1 = cx; // Vertex A (top)
+            const y1 = cy - (b * scale) / 2;
+            const x2 = cx - (a * scale) / 2; // Vertex B (bottom-left)
+            const y2 = cy + (c * scale) / 2;
+            const x3 = cx + (a * scale) / 2; // Vertex C (bottom-right)
+            const y3 = cy + (c * scale) / 2;
+
+            // Draw the triangle
+            ctx.beginPath();
+            ctx.moveTo(x1, y1); // A
+            ctx.lineTo(x2, y2); // B
+            ctx.lineTo(x3, y3); // C
+            ctx.closePath();
+            ctx.stroke();
+
+            // Calculate centroid for placing angle labels inside
+            const centroidX = (x1 + x2 + x3) / 3;
+            const centroidY = (y1 + y2 + y3) / 3;
+
+            // Place angles inside the triangle (offset from vertices towards centroid)
+            const offsetInside = 20;
+            ctx.fillText(`∠A=${angleA.toFixed(2)}°`, x1 + (centroidX - x1) / 2, y1 + (centroidY - y1) / 2 + offsetInside);
+            ctx.fillText(`∠B=${angleB.toFixed(2)}°`, x2 + (centroidX - x2) / 2 + offsetInside, y2 + (centroidY - y2) / 2 - offsetInside);
+            ctx.fillText(`∠C=${angleC.toFixed(2)}°`, x3 + (centroidX - x3) / 2 - offsetInside, y3 + (centroidY - y3) / 2 - offsetInside);
+
+            // Place sides outside the triangle
+            const offsetOutside = 15;
+            ctx.fillText(`a=${a.toFixed(2)}`, (x2 + x3) / 2, (y2 + y3) / 2 + offsetOutside);
+            ctx.fillText(`b=${b.toFixed(2)}`, (x1 + x3) / 2 + offsetOutside, (y1 + y3) / 2);
+            ctx.fillText(`c=${c.toFixed(2)}`, (x1 + x2) / 2 - offsetOutside, (y1 + y2) / 2);
+        }
+
+        // Initialize
+        updateKnownValues();
+    </script>
+</body>
+</html>
